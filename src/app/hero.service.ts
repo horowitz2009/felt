@@ -7,16 +7,18 @@ import { Hero } from './hero';
 
 @Injectable()
 export class HeroService {
-  private heroesUrl = 'app/heroes';  // URL to web api
+  private heroesUrl = 'api.php/heroes';  // URL to web api
 
   constructor(private http: Http) { }
 
   getHeroes(): Promise<Array<Hero>> {
     return this.http
-      .get(this.heroesUrl)
+      .get(this.heroesUrl + "?transform=1")
       .toPromise()
       .then((response) => {
-        return response.json().data as Hero[];
+        console.log("response:" + response);
+        console.log("response.json:" + response.json());
+        return response.json().heroes as Hero[];
       })
       .catch(this.handleError);
   }
