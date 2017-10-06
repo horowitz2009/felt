@@ -1,31 +1,37 @@
 import { Injectable } from '@angular/core';
 import { Headers, Http, Response } from '@angular/http';
 
+import { environment } from '../environments/environment';
+
 import 'rxjs/add/operator/toPromise';
 
 import { Hero } from './hero';
 
 @Injectable()
 export class HeroService {
-  private heroesUrl = 'api.php/heroes';  // URL to web api
+  private heroesUrl = environment.apiUrl + 'heroes';  // URL to web api
 
   constructor(private http: Http) { }
 
   getHeroes(): Promise<Array<Hero>> {
     return this.http
-      .get(this.heroesUrl + "?transform=1")
+      .get(this.heroesUrl)
       .toPromise()
       .then((response) => {
-        console.log("response:" + response);
-        console.log("response.json:" + response.json());
-        return response.json().heroes as Hero[];
+        return response.json().data as Hero[];
       })
       .catch(this.handleError);
   }
 
   getHero(id: number): Promise<Hero> {
-    return this.getHeroes()
-      .then(heroes => heroes.find(hero => hero.id === id));
+
+    return this.http
+      .get(this.heroesUrl + "/" + id)
+      .toPromise()
+      .then((response) => {
+        return response.json() as Hero;
+      })
+      .catch(this.handleError);
   }
 
   save(hero: Hero): Promise<Hero> {
@@ -56,7 +62,14 @@ export class HeroService {
     return this.http
       .post(this.heroesUrl, JSON.stringify(hero), { headers: headers })
       .toPromise()
-      .then(res => res.json().data)
+      .then(res => {
+    	  console.log("RESULT: " + res.json());
+    	  let json = res.json();
+    	  if (json.data)
+    		  return json.data as Hero;
+    	  else
+    	      return this.getHero(json);
+    	  })
       .catch(this.handleError);
   }
 
